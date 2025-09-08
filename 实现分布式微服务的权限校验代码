@@ -1,0 +1,40 @@
+实现分布式微服务的权限校验
+import org.springframework.cloud.gateway.filter.GatewayFilterChain;
+import org.springframework.cloud.gateway.filter.GlobalFilter;
+import org.springframework.core.Ordered;
+import org.springframework.http.HttpStatus;
+import org.springframework.stereotype.Component;
+import org.springframework.web.server.ServerWebExchange;
+import reactor.core.publisher.Mono;
+
+@Component
+public class AuthFilter implements GlobalFilter, Ordered {
+
+    @Override
+    public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
+        // 实现认证逻辑
+        String token = exchange.getRequest().getHeaders().getFirst("Authorization");
+        
+        if (token == null || !isValidToken(token)) {
+            exchange.getResponse().setStatusCode(HttpStatus.UNAUTHORIZED);
+            return exchange.getResponse().setComplete();
+        }
+        
+        // 添加自定义header
+        exchange.getRequest().mutate()
+                .header("X-User-Id", "12345")
+                .build();
+        
+        return chain.filter(exchange);
+    }
+
+    @Override
+    public int getOrder() {
+        return -1; // 执行顺序
+    }
+    
+    private boolean isValidToken(String token) {
+        //  token验证逻辑
+        return true;
+    }
+}
